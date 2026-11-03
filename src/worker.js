@@ -3,6 +3,7 @@ const { Worker } = require('bullmq');
 
 const db = require('./database');
 const { connection } = require('./queue');
+const { handleHelpCommand } = require('./bot/help');
 
 // =====================================================
 // MESSAGE HANDLER
@@ -108,10 +109,7 @@ async function handleMessage(session, payload) {
 
   // Hanya incoming yang boleh masuk chatbot
   if (direction === 'incoming') {
-    console.log('Incoming message - ready for chatbot');
-
-    // TODO:
-    // Integrasi chatbot AI / Ollama di sini.
+    await handleHelpCommand(session, payload);
   }
 }
 
