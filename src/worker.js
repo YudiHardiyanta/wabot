@@ -17,25 +17,29 @@ async function handleMessage(session, payload) {
   }
 
   // Incoming atau outgoing
-  const direction = payload.fromMe
+  const fromMe = Boolean(
+    payload.fromMe ?? payload._data?.id?.fromMe ?? false
+  );
+
+  const direction = fromMe
     ? 'outgoing'
     : 'incoming';
 
   // Identifikasi chat
-  const chatId = payload.fromMe
+  const chatId = fromMe
     ? payload.to
     : payload.from;
 
   // Pengirim dan penerima
-  const sender = payload.fromMe
+  const sender = fromMe
     ? null
     : (payload.participant || payload.from);
 
-  const recipient = payload.fromMe
+  const recipient = fromMe
     ? payload.to
     : null;
 
-  const messageType = payload.type || 'unknown';
+  const messageType = payload.type || payload._data?.type || 'unknown';
 
   const hasMedia = Boolean(payload.hasMedia);
 
@@ -63,6 +67,15 @@ async function handleMessage(session, payload) {
     ON CONFLICT (session, message_id)
     DO UPDATE SET
       ack = COALESCE(EXCLUDED.ack, wa_messages.ack),
+      chat_id = EXCLUDED.chat_id,
+      sender = EXCLUDED.sender,
+      recipient = EXCLUDED.recipient,
+      direction = EXCLUDED.direction,
+      message_type = EXCLUDED.message_type,
+      body = EXCLUDED.body,
+      has_media = EXCLUDED.has_media,
+      media = EXCLUDED.media,
+      raw_payload = EXCLUDED.raw_payload,
       updated_at = NOW()
     `,
     [
